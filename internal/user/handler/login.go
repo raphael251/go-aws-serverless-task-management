@@ -18,8 +18,8 @@ import (
 )
 
 type LogUserInInput struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
 type LogUserInOutput struct {
@@ -33,6 +33,15 @@ func LogUserIn(req events.APIGatewayProxyRequest, dbClient *dynamodb.Client) (*e
 	err := json.Unmarshal([]byte(req.Body), &input)
 	if err != nil {
 		return nil, err
+	}
+
+	if validationErrors := utils.ValidateRequestInput(input); validationErrors != nil {
+		errs := make([]string, 0)
+		for _, err := range validationErrors {
+			errs = append(errs, err.Error())
+		}
+
+		return utils.HttpResponseBadRequest("", errs)
 	}
 
 	dbItem, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
