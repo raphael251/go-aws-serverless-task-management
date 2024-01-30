@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/go-playground/validator/v10"
 	"github.com/raphael251/go-aws-serverless-task-management/internal/database"
 	"github.com/raphael251/go-aws-serverless-task-management/internal/utils"
 	"golang.org/x/crypto/bcrypt"
@@ -21,21 +20,6 @@ type CreateUserInput struct {
 	Password string `json:"password" validate:"required"`
 }
 
-func (user *CreateUserInput) Validate() []error {
-	validate := validator.New()
-	err := validate.Struct(user)
-
-	if err != nil {
-		errs := make([]error, 0)
-		for _, e := range err.(validator.ValidationErrors) {
-			errs = append(errs, fmt.Errorf("invalid field: %s", e.Field()))
-		}
-		return errs
-	}
-
-	return nil
-}
-
 func RegisterUser(req events.APIGatewayProxyRequest, dbClient *dynamodb.Client) (*events.APIGatewayProxyResponse, error) {
 	var input *CreateUserInput
 	err := json.Unmarshal([]byte(req.Body), &input)
@@ -43,7 +27,7 @@ func RegisterUser(req events.APIGatewayProxyRequest, dbClient *dynamodb.Client) 
 		return utils.HttpResponseBadRequest("", nil)
 	}
 
-	if validationErrors := input.Validate(); validationErrors != nil {
+	if validationErrors := utils.ValidateRequestInput(input); validationErrors != nil {
 		errs := make([]string, 0)
 		for _, err := range validationErrors {
 			errs = append(errs, err.Error())
