@@ -60,7 +60,7 @@ func LogUserIn(req events.APIGatewayProxyRequest, dbClient *dynamodb.Client) (*e
 
 	err = bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(input.Password))
 	if err != nil {
-		return utils.HttpResponseBadRequest(errInvalidUsernameOrPassword)
+		return utils.HttpResponseBadRequest(errInvalidUsernameOrPassword, nil)
 	}
 
 	secret := []byte(os.Getenv("JWT_SECRET"))

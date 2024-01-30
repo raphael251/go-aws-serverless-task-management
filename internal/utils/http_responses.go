@@ -39,9 +39,10 @@ func HttpResponseNotFound() (*events.APIGatewayProxyResponse, error) {
 	return &events.APIGatewayProxyResponse{StatusCode: 404}, nil
 }
 
-func HttpResponseBadRequest(message string) (*events.APIGatewayProxyResponse, error) {
+func HttpResponseBadRequest(message string, data interface{}) (*events.APIGatewayProxyResponse, error) {
 	type BadRequestResponse struct {
-		Message string `json:"message"`
+		Message string      `json:"message"`
+		Data    interface{} `json:"data,omitempty"`
 	}
 
 	responseMessage := "bad request"
@@ -49,7 +50,7 @@ func HttpResponseBadRequest(message string) (*events.APIGatewayProxyResponse, er
 		responseMessage = message
 	}
 
-	response, err := json.Marshal(&BadRequestResponse{Message: responseMessage})
+	response, err := json.Marshal(&BadRequestResponse{Message: responseMessage, Data: data})
 
 	if err != nil {
 		return nil, err
