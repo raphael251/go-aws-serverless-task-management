@@ -9,6 +9,8 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/raphael251/go-aws-serverless-task-management/internal/handlers"
+	"github.com/raphael251/go-aws-serverless-task-management/internal/routers"
+	"github.com/raphael251/go-aws-serverless-task-management/internal/utils"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -18,8 +20,6 @@ func main() {
 
 	lambda.Start(Handler)
 }
-
-var ErrUnexpected = "unexpected error"
 
 func Handler(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse, error) {
 	region := os.Getenv("AWS_REGION")
@@ -35,9 +35,9 @@ func Handler(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse
 	case "/api/users":
 		return UsersRouter(req, dbClient)
 	case "/api/projects":
-		return ProjectsRouter(req, dbClient)
+		return routers.ProjectsRouter(req, dbClient)
 	default:
-		return nil, errors.New(ErrUnexpected)
+		return nil, errors.New(utils.ErrUnexpected)
 	}
 }
 
@@ -46,21 +46,6 @@ func UsersRouter(req events.APIGatewayProxyRequest, dbClient *dynamodb.Client) (
 	case http.MethodPost:
 		return handlers.CreateUser(req, dbClient)
 	default:
-		return nil, errors.New(ErrUnexpected)
-	}
-}
-
-func ProjectsRouter(req events.APIGatewayProxyRequest, dbClient *dynamodb.Client) (*events.APIGatewayProxyResponse, error) {
-	switch req.HTTPMethod {
-	case http.MethodPost:
-		return handlers.CreateProject(req, dbClient)
-	case http.MethodGet:
-		return handlers.FindAllProjects(req)
-	case http.MethodPut:
-		return handlers.UpdateProject(req)
-	case http.MethodDelete:
-		return handlers.DeleteProject(req)
-	default:
-		return nil, errors.New(ErrUnexpected)
+		return nil, errors.New(utils.ErrUnexpected)
 	}
 }

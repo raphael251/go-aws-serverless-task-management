@@ -6,6 +6,8 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
+var ErrUnexpected = "unexpected error"
+
 func HttpResponseCreated() (*events.APIGatewayProxyResponse, error) {
 	return &events.APIGatewayProxyResponse{
 		StatusCode: 201,
