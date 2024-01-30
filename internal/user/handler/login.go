@@ -47,11 +47,16 @@ func LogUserIn(req events.APIGatewayProxyRequest, dbClient *dynamodb.Client) (*e
 		TableName: &database.AppTableName,
 	})
 	if err != nil {
-		return nil, err
+		fmt.Println("error performing a GetItem to log user in", err)
+		return utils.HttpResponseInternalServerError("")
 	}
 
 	foundUser := entity.User{}
-	attributevalue.UnmarshalMap(dbItem.Item, &foundUser)
+	err = attributevalue.UnmarshalMap(dbItem.Item, &foundUser)
+	if err != nil {
+		fmt.Println("error trying to unmarshal the user from the db in login", err)
+		return utils.HttpResponseInternalServerError("")
+	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(input.Password))
 	if err != nil {
