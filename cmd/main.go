@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"os"
 	"strings"
 
@@ -37,6 +36,6 @@ func Handler(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse
 	case strings.Contains(req.Path, "/api/projects"):
 		return routers.ProjectsRouter(req, dbClient)
 	default:
-		return nil, errors.New(utils.ErrUnexpected)
+		return utils.HttpResponseNotFound()
 	}
 }

@@ -9,10 +9,11 @@ import (
 var ErrUnexpected = "unexpected error"
 
 func HttpResponseCreated() (*events.APIGatewayProxyResponse, error) {
-	return &events.APIGatewayProxyResponse{
-		StatusCode: 201,
-		Headers:    map[string]string{"Content-Type": "application/json"},
-	}, nil
+	return &events.APIGatewayProxyResponse{StatusCode: 201}, nil
+}
+
+func HttpResponseMethodNotAllowed() (*events.APIGatewayProxyResponse, error) {
+	return &events.APIGatewayProxyResponse{StatusCode: 405}, nil
 }
 
 func HttpResponseOK(body interface{}) (*events.APIGatewayProxyResponse, error) {
@@ -32,6 +33,10 @@ func HttpResponseOK(body interface{}) (*events.APIGatewayProxyResponse, error) {
 		Headers:    map[string]string{"Content-Type": "application/json"},
 		Body:       string(response),
 	}, nil
+}
+
+func HttpResponseNotFound() (*events.APIGatewayProxyResponse, error) {
+	return &events.APIGatewayProxyResponse{StatusCode: 404}, nil
 }
 
 func HttpResponseBadRequest(message string) (*events.APIGatewayProxyResponse, error) {

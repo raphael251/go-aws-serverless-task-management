@@ -1,7 +1,6 @@
 package router
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -17,17 +16,17 @@ func Route(req events.APIGatewayProxyRequest, dbClient *dynamodb.Client) (*event
 		case http.MethodPost:
 			return handler.RegisterUser(req, dbClient)
 		default:
-			return nil, errors.New(utils.ErrUnexpected)
+			return utils.HttpResponseMethodNotAllowed()
 		}
 	case "/api/users/login":
 		switch req.HTTPMethod {
 		case http.MethodPost:
 			return handler.LogUserIn(req, dbClient)
 		default:
-			return nil, errors.New(utils.ErrUnexpected)
+			return utils.HttpResponseMethodNotAllowed()
 		}
 	default:
-		return nil, errors.New(utils.ErrUnexpected)
+		return utils.HttpResponseNotFound()
 	}
 
 }
