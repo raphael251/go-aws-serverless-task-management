@@ -21,13 +21,32 @@ type CreateUserInput struct {
 }
 
 func RegisterUser(req events.APIGatewayProxyRequest, dbClient *dynamodb.Client) (*events.APIGatewayProxyResponse, error) {
-	var user *CreateUserInput
-	err := json.Unmarshal([]byte(req.Body), &user)
+	var input *CreateUserInput
+	err := json.Unmarshal([]byte(req.Body), &input)
 	if err != nil {
 		return utils.HttpResponseBadRequest("")
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	dbItem, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
+		Key: map[string]types.AttributeValue{
+			"pk": &types.AttributeValueMemberS{
+				Value: fmt.Sprintf("%s%s", database.UserPKPrepend, input.Username),
+			},
+			"sk": &types.AttributeValueMemberS{
+				Value: "info",
+			},
+		},
+		TableName: &database.AppTableName,
+	})
+	if err != nil {
+		fmt.Println("error performing a GetItem to register user", err)
+		return utils.HttpResponseInternalServerError("")
+	}
+	if dbItem.Item != nil {
+		return utils.HttpResponseBadRequest("username already in use. Please choose another one.")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
 		fmt.Println("error hashing the user password for registering user", err)
 		return utils.HttpResponseInternalServerError("")
@@ -35,11 +54,11 @@ func RegisterUser(req events.APIGatewayProxyRequest, dbClient *dynamodb.Client) 
 
 	_, err = dbClient.PutItem(context.TODO(), &dynamodb.PutItemInput{
 		Item: map[string]types.AttributeValue{
-			"pk":       &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", database.UserPKPrepend, user.Username)},
+			"pk":       &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", database.UserPKPrepend, input.Username)},
 			"sk":       &types.AttributeValueMemberS{Value: "info"},
-			"username": &types.AttributeValueMemberS{Value: user.Username},
-			"name":     &types.AttributeValueMemberS{Value: user.Name},
-			"email":    &types.AttributeValueMemberS{Value: user.Email},
+			"username": &types.AttributeValueMemberS{Value: input.Username},
+			"name":     &types.AttributeValueMemberS{Value: input.Name},
+			"email":    &types.AttributeValueMemberS{Value: input.Email},
 			"password": &types.AttributeValueMemberS{Value: string(hashedPassword)},
 		},
 		TableName: &database.AppTableName,
