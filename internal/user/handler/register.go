@@ -22,17 +22,15 @@ type CreateUserInput struct {
 
 func RegisterUser(req events.APIGatewayProxyRequest, dbClient *dynamodb.Client) (*events.APIGatewayProxyResponse, error) {
 	var user *CreateUserInput
-
 	err := json.Unmarshal([]byte(req.Body), &user)
-
 	if err != nil {
-		return nil, err
+		return utils.HttpResponseBadRequest("")
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-
 	if err != nil {
-		return nil, err
+		fmt.Println("error hashing the user password for registering user", err)
+		return utils.HttpResponseInternalServerError("")
 	}
 
 	_, err = dbClient.PutItem(context.TODO(), &dynamodb.PutItemInput{
@@ -46,9 +44,9 @@ func RegisterUser(req events.APIGatewayProxyRequest, dbClient *dynamodb.Client) 
 		},
 		TableName: &database.AppTableName,
 	})
-
 	if err != nil {
-		return nil, err
+		fmt.Println("error performing a PutItem for registering user", err)
+		return utils.HttpResponseInternalServerError("")
 	}
 
 	return utils.HttpResponseCreated()
