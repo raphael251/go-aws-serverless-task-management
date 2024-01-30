@@ -1,4 +1,4 @@
-package handlers
+package handler
 
 import (
 	"context"
@@ -12,53 +12,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/raphael251/go-aws-serverless-task-management/internal/database"
-	"github.com/raphael251/go-aws-serverless-task-management/internal/entity"
+	"github.com/raphael251/go-aws-serverless-task-management/internal/user/entity"
 	"github.com/raphael251/go-aws-serverless-task-management/internal/utils"
 	"golang.org/x/crypto/bcrypt"
 )
-
-var userPKPrepend = "user#"
-
-type CreateUserInput struct {
-	Username string `json:"username"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-func RegisterUser(req events.APIGatewayProxyRequest, dbClient *dynamodb.Client) (*events.APIGatewayProxyResponse, error) {
-	var user *CreateUserInput
-
-	err := json.Unmarshal([]byte(req.Body), &user)
-
-	if err != nil {
-		return nil, err
-	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = dbClient.PutItem(context.TODO(), &dynamodb.PutItemInput{
-		Item: map[string]types.AttributeValue{
-			"pk":       &types.AttributeValueMemberS{Value: fmt.Sprintf("%s%s", userPKPrepend, user.Username)},
-			"sk":       &types.AttributeValueMemberS{Value: "info"},
-			"username": &types.AttributeValueMemberS{Value: user.Username},
-			"name":     &types.AttributeValueMemberS{Value: user.Name},
-			"email":    &types.AttributeValueMemberS{Value: user.Email},
-			"password": &types.AttributeValueMemberS{Value: string(hashedPassword)},
-		},
-		TableName: &database.AppTableName,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return utils.HttpResponseCreated()
-}
 
 type LogUserInInput struct {
 	Username string `json:"username"`
@@ -81,7 +38,7 @@ func LogUserIn(req events.APIGatewayProxyRequest, dbClient *dynamodb.Client) (*e
 	dbItem, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{
-				Value: fmt.Sprintf("%s%s", userPKPrepend, input.Username),
+				Value: fmt.Sprintf("%s%s", database.UserPKPrepend, input.Username),
 			},
 			"sk": &types.AttributeValueMemberS{
 				Value: "info",

@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/raphael251/go-aws-serverless-task-management/internal/routers"
+	userRouter "github.com/raphael251/go-aws-serverless-task-management/internal/user/router"
 	"github.com/raphael251/go-aws-serverless-task-management/internal/utils"
 
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -32,7 +33,7 @@ func Handler(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse
 
 	switch {
 	case strings.Contains(req.Path, "/api/users"):
-		return routers.UsersRouter(req, dbClient)
+		return userRouter.Route(req, dbClient)
 	case strings.Contains(req.Path, "/api/projects"):
 		return routers.ProjectsRouter(req, dbClient)
 	default:
