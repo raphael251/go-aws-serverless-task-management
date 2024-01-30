@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -29,10 +30,10 @@ func Handler(req events.APIGatewayProxyRequest) (*events.APIGatewayProxyResponse
 
 	dbClient := dynamodb.NewFromConfig(cfg)
 
-	switch req.Path {
-	case "/api/users":
+	switch {
+	case strings.Contains(req.Path, "/api/users"):
 		return routers.UsersRouter(req, dbClient)
-	case "/api/projects":
+	case strings.Contains(req.Path, "/api/projects"):
 		return routers.ProjectsRouter(req, dbClient)
 	default:
 		return nil, errors.New(utils.ErrUnexpected)

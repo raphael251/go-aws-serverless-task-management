@@ -11,10 +11,23 @@ import (
 )
 
 func UsersRouter(req events.APIGatewayProxyRequest, dbClient *dynamodb.Client) (*events.APIGatewayProxyResponse, error) {
-	switch req.HTTPMethod {
-	case http.MethodPost:
-		return handlers.CreateUser(req, dbClient)
+	switch req.Path {
+	case "/api/users/register":
+		switch req.HTTPMethod {
+		case http.MethodPost:
+			return handlers.RegisterUser(req, dbClient)
+		default:
+			return nil, errors.New(utils.ErrUnexpected)
+		}
+	case "/api/users/login":
+		switch req.HTTPMethod {
+		case http.MethodPost:
+			return handlers.LogUserIn(req, dbClient)
+		default:
+			return nil, errors.New(utils.ErrUnexpected)
+		}
 	default:
 		return nil, errors.New(utils.ErrUnexpected)
 	}
+
 }
