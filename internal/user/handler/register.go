@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/raphael251/go-aws-serverless-task-management/internal/database"
 	"github.com/raphael251/go-aws-serverless-task-management/internal/utils"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type CreateUserInput struct {
@@ -25,7 +24,11 @@ type DynamoDBClient interface {
 	PutItem(ctx context.Context, params *dynamodb.PutItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.PutItemOutput, error)
 }
 
-func RegisterUser(req events.APIGatewayProxyRequest, dbClient DynamoDBClient) (*events.APIGatewayProxyResponse, error) {
+type HashGenerator interface {
+	GenerateFromPassword(password string) (string, error)
+}
+
+func RegisterUser(req events.APIGatewayProxyRequest, dbClient DynamoDBClient, hashGenerator HashGenerator) (*events.APIGatewayProxyResponse, error) {
 	var input *CreateUserInput
 	err := json.Unmarshal([]byte(req.Body), &input)
 	if err != nil {
@@ -60,7 +63,7 @@ func RegisterUser(req events.APIGatewayProxyRequest, dbClient DynamoDBClient) (*
 		return utils.HttpResponseBadRequest("username already in use. Please choose another one.", nil)
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
+	hashedPassword, err := hashGenerator.GenerateFromPassword(input.Password)
 	if err != nil {
 		fmt.Println("error hashing the user password for registering user", err)
 		return utils.HttpResponseInternalServerError("")

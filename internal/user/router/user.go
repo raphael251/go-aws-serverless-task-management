@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/raphael251/go-aws-serverless-task-management/internal/user/handler"
 	"github.com/raphael251/go-aws-serverless-task-management/internal/utils"
+	"github.com/raphael251/go-aws-serverless-task-management/internal/utils/security"
 )
 
 func Route(req events.APIGatewayProxyRequest, dbClient *dynamodb.Client) (*events.APIGatewayProxyResponse, error) {
@@ -14,7 +15,7 @@ func Route(req events.APIGatewayProxyRequest, dbClient *dynamodb.Client) (*event
 	case "/api/users/register":
 		switch req.HTTPMethod {
 		case http.MethodPost:
-			return handler.RegisterUser(req, dbClient)
+			return handler.RegisterUser(req, dbClient, security.NewHashGenerator())
 		default:
 			return utils.HttpResponseMethodNotAllowed()
 		}
