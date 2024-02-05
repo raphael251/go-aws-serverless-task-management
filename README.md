@@ -25,3 +25,9 @@ I learned that DynamoDB is a good choice when working with larges amount of data
 If the application keeps changing it's data model, DynamoDB can be a bad choice, because it is better when you already know your data access patterns so you can model the data accordingly. You define the partition and sort key based on these patterns. If your application evolves over time, it's difficult to adapt the data model to the new requirements.
 
 In this case, I've based the data model on data access patterns like "find all projects that a user is part of". To do so, I needed to create a partition key with the username and the sort key with the project id, so I can combine these keys to find these projects. If I need to to the reverse query (find all users that are part of a project), I can create a GSI (Global Secondary Index) to switch the sort key and the partition key, and then I can do the proper query.
+
+## Unit Testing
+
+To simply run the unit tests, run `go test ./...`.
+
+To see the coverage, firstly run `go test -coverprofile=c.out ./...` and then run `go tool cover -html="c.out" ./...`.
