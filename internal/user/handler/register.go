@@ -20,7 +20,12 @@ type CreateUserInput struct {
 	Password string `json:"password" validate:"required"`
 }
 
-func RegisterUser(req events.APIGatewayProxyRequest, dbClient *dynamodb.Client) (*events.APIGatewayProxyResponse, error) {
+type DynamoDBClient interface {
+	GetItem(ctx context.Context, params *dynamodb.GetItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.GetItemOutput, error)
+	PutItem(ctx context.Context, params *dynamodb.PutItemInput, optFns ...func(*dynamodb.Options)) (*dynamodb.PutItemOutput, error)
+}
+
+func RegisterUser(req events.APIGatewayProxyRequest, dbClient DynamoDBClient) (*events.APIGatewayProxyResponse, error) {
 	var input *CreateUserInput
 	err := json.Unmarshal([]byte(req.Body), &input)
 	if err != nil {
